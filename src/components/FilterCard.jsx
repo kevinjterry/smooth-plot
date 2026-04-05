@@ -59,7 +59,8 @@ export default function FilterCard({
           </Select>
 
           {filterMeta?.params.map((param) => {
-            const currentValue = filter.params[param.key] ?? param.default
+            const dynamicMax = param.maxFn ? param.maxFn(filter.params) : param.max
+            const currentValue = Math.min(filter.params[param.key] ?? param.default, dynamicMax)
             return (
               <div key={param.key} className="space-y-1">
                 <div className="flex items-center justify-between">
@@ -68,7 +69,7 @@ export default function FilterCard({
                 </div>
                 <Slider
                   min={param.min}
-                  max={param.max}
+                  max={dynamicMax}
                   step={param.step}
                   value={[currentValue]}
                   onValueChange={([v]) => onParamChange(param.key, v)}

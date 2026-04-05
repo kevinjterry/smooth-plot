@@ -35,10 +35,14 @@ export default function Chart({ rawData, filteredSeries }) {
     return point
   })
 
+  // Recharts doesn't reliably render dynamically added <Line> children.
+  // Keying the chart on the series keys forces a remount when lines are added/removed.
+  const chartKey = filteredSeries.map((s) => s.key).join(',')
+
   return (
     <div className="flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 12%)' }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
+        <LineChart key={chartKey} data={chartData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis
             dataKey="index"

@@ -3,8 +3,9 @@ import * as ema from './ema'
 import * as gaussian from './gaussian'
 import * as savitzkyGolay from './savitzkyGolay'
 import * as median from './median'
+import * as kalman from './kalman'
 
-export const filterRegistry = [sma, ema, gaussian, savitzkyGolay, median]
+export const filterRegistry = [sma, ema, gaussian, savitzkyGolay, median, kalman]
 
 export function applyFilter(filterKey, data, params) {
   const filterModule = filterRegistry.find((f) => f.meta.key === filterKey)

@@ -4,6 +4,7 @@ import { applyFilter, filterRegistry } from './filters'
 import Chart from './components/Chart'
 import DatasetBar from './components/DatasetBar'
 import FilterStack from './components/FilterStack'
+import CausalToggle from './components/CausalToggle'
 import StatsBar from './components/StatsBar'
 
 let nextFilterId = 1
@@ -21,6 +22,7 @@ export default function App() {
   const [activeSignal, setActiveSignal] = useState('steady-climb')
   const [noiseLevel, setNoiseLevel] = useState(0.3)
   const [noiseType, setNoiseType] = useState('gaussian')
+  const [causalMode, setCausalMode] = useState(false)
   const [filters, setFilters] = useState(() => [makeDefaultFilter()])
   const [expandedIndex, setExpandedIndex] = useState(0)
 
@@ -36,10 +38,10 @@ export default function App() {
         return {
           key: `filter-${f.id}`,
           name: meta?.name ?? f.type,
-          data: applyFilter(f.type, rawData, f.params),
+          data: applyFilter(f.type, rawData, f.params, { causalMode }),
         }
       }),
-    [filters, rawData],
+    [filters, rawData, causalMode],
   )
 
   const handleAddFilter = useCallback(() => {
@@ -83,13 +85,13 @@ export default function App() {
     )
   }, [])
 
-  const focusedFilter = filters[expandedIndex]
   const focusedSeries = filteredSeries[expandedIndex]
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <header className="shrink-0 border-b border-border px-4 py-2">
+      <header className="shrink-0 border-b border-border px-4 py-2 flex items-center justify-between">
         <h1 className="text-sm font-semibold tracking-tight">Signal Filter Visualizer</h1>
+        <CausalToggle causalMode={causalMode} onToggle={setCausalMode} />
       </header>
 
       <div className="flex flex-1 min-h-0">
@@ -98,6 +100,7 @@ export default function App() {
           <FilterStack
             filters={filters}
             expandedIndex={expandedIndex}
+            causalMode={causalMode}
             onToggleExpand={(i) => setExpandedIndex(i === expandedIndex ? -1 : i)}
             onRemove={handleRemoveFilter}
             onTypeChange={handleTypeChange}

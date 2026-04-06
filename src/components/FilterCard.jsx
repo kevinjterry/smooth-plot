@@ -6,10 +6,37 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from './ui/select'
 
+function CausalBadge({ filterMeta, causalMode }) {
+  if (!filterMeta) return null
+
+  if (filterMeta.causal) {
+    return (
+      <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-500/15 text-emerald-400">
+        Causal
+      </span>
+    )
+  }
+
+  if (causalMode) {
+    return (
+      <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/15 text-amber-400">
+        Forced causal
+      </span>
+    )
+  }
+
+  return (
+    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+      Non-causal
+    </span>
+  )
+}
+
 export default function FilterCard({
   filter,
   colorIndex,
   isExpanded,
+  causalMode,
   onToggle,
   onRemove,
   onTypeChange,
@@ -31,7 +58,8 @@ export default function FilterCard({
           className="size-2.5 rounded-full shrink-0"
           style={{ backgroundColor: color }}
         />
-        <span className="flex-1 text-left">{filterMeta?.name ?? 'Select filter'}</span>
+        <span className="flex-1 text-left truncate">{filterMeta?.name ?? 'Select filter'}</span>
+        <CausalBadge filterMeta={filterMeta} causalMode={causalMode} />
         <button
           onClick={(e) => { e.stopPropagation(); onRemove() }}
           className="text-muted-foreground hover:text-foreground p-0.5 rounded"
@@ -47,7 +75,7 @@ export default function FilterCard({
         <div className="px-3 pb-3 space-y-3">
           <Select value={filter.type} onValueChange={onTypeChange}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose filter…" />
+              <SelectValue placeholder="Choose filter..." />
             </SelectTrigger>
             <SelectContent>
               {filterRegistry.map((f) => (

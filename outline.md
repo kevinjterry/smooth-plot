@@ -96,15 +96,76 @@ since they're properties of the data — not the filters.
 Each filter exposes 1–3 tunable parameters presented as labeled sliders with
 sensible defaults and min/max bounds.
 
-| Filter                        | Parameters                                         |
-|-------------------------------|----------------------------------------------------|
-| **Simple Moving Average**     | `windowSize` (3 – 101, odd)                        |
-| **Exponential Moving Average**| `alpha` (0.01 – 1.0)                               |
-| **Gaussian Window**           | `windowSize` (3 – 101), `sigma` (0.5 – 20)        |
-| **Savitzky–Golay**            | `windowSize` (5 – 51, odd), `polyOrder` (1 – 5)   |
-| **1-D Kalman**                | `processNoise Q` (0.001 – 10), `measureNoise R` (0.001 – 10) |
-| **Median Filter**             | `windowSize` (3 – 51, odd)                         |
-| ~~Butterworth (lowpass)~~     | _Deferred to v2 — needs IIR coeff math or DSP lib_ |
+| Filter                        | Causal? | Parameters                                         |
+|-------------------------------|---------|-----------------------------------------------------|
+| **Simple Moving Average**     | ✅ Yes  | `windowSize` (3 – 101, odd)                        |
+| **Exponential Moving Average**| ✅ Yes  | `alpha` (0.01 – 1.0)                               |
+| **Gaussian Window**           | ❌ No   | `windowSize` (3 – 101), `sigma` (0.5 – 20)        |
+| **Savitzky–Golay**            | ❌ No   | `windowSize` (5 – 51, odd), `polyOrder` (1 – 5)   |
+| **1-D Kalman**                | ✅ Yes  | `processNoise Q` (0.001 – 10), `measureNoise R` (0.001 – 10) |
+| **Median Filter**             | ❌ No   | `windowSize` (3 – 51, odd)                         |
+| ~~Butterworth (lowpass)~~     | —       | _Deferred to v2 — needs IIR coeff math or DSP lib_ |
+
+### Causal mode toggle
+
+A global toggle in the app header (or top of the sidebar) switches between
+**"Full window"** (default) and **"Causal / real-time"** mode.
+
+- **Full window** (default): non-causal filters use centered windows —
+  they peek ahead. This is the standard offline/batch behavior.
+- **Causal mode**: all filters are forced to use trailing-only windows.
+  Non-causal filters shift to using only past samples. The user *sees*
+  lag appear on S-G, Gaussian, and median — same params, visibly worse
+  tracking. This is the "aha" moment: the cost of real-time constraints.
+
+Causal filters (SMA, EMA, Kalman) behave identically in both modes.
+
+**Info tooltip (ⓘ)**: a small info icon beside the toggle opens a tooltip
+or popover explaining the concept:
+
+> **Causal vs. Non-causal filters**
+>
+> A *causal* filter only uses the current and past data points — it can
+> run in real time on streaming data. SMA, EMA, and Kalman are naturally
+> causal.
+>
+> A *non-causal* filter also looks at future data points (centered
+> window). Savitzky-Golay, Gaussian, and Median are non-causal by
+> default — they produce better results but require the full dataset
+> upfront.
+>
+> Toggle "Causal mode" to force all filters into real-time behavior and
+> see the tradeoff.
+
+### Filter meta — causality flag
+
+Each filter's `meta` descriptor includes a `causal` boolean:
+
+```js
+export const meta = {
+  name: "Savitzky-Golay",
+  key: "savitzkyGolay",
+  causal: false,  // ← has both causal and non-causal implementations
+  params: [ ... ]
+}
+```
+
+The `apply` function receives the causal mode flag:
+
+```js
+export function apply(data, params, { causalMode }) {
+  if (causalMode) {
+    // trailing-only window implementation
+  } else {
+    // centered window implementation
+  }
+}
+```
+
+Filters where `causal: true` can ignore the flag — their behavior doesn't
+change. The filter card displays a small badge: "Causal" (green) or
+"Non-causal" (muted). When causal mode is on, non-causal filters show
+"Forced causal" (amber) to make the override visible.
 
 ---
 
@@ -199,6 +260,7 @@ src/
     DatasetBar.jsx        # horizontal chip selector + noise slider (below chart)
     FilterCard.jsx        # single collapsible filter: type picker + param sliders
     FilterStack.jsx       # manages list of FilterCards + "Add Filter" button
+    CausalToggle.jsx      # causal mode switch + ⓘ info tooltip
     StatsBar.jsx          # error metrics for the focused filter
   signals/
     index.js              # registry + generateSignal()
@@ -232,16 +294,22 @@ Each filter is a self-contained module exporting two things:
 export const meta = {
   name: "Simple Moving Average",
   key: "sma",
+  causal: true,   // naturally causal — unaffected by causal mode toggle
   params: [
     { key: "windowSize", label: "Window Size", min: 3, max: 101, step: 2, default: 21 }
   ]
 }
-export function apply(data, { windowSize }) { /* ... returns number[] */ }
+export function apply(data, { windowSize }, { causalMode }) {
+  /* ... returns number[] */
+}
 ```
 
 - `meta` drives the UI — `FilterCard` reads `meta.params` and renders a
   slider for each entry. No filter-specific UI code anywhere.
-- `apply` signature is always `(number[], Record<string, number>) → number[]`.
+- `meta.causal` indicates native causality. Used for badge display and
+  to determine whether causal mode changes the filter's behavior.
+- `apply` signature is always
+  `(number[], Record<string, number>, { causalMode: boolean }) → number[]`.
 - `filters/index.js` collects all modules into a `filterRegistry` array.
 - **Adding a new filter = one new file + one import line.** Zero UI changes.
 

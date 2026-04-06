@@ -7,6 +7,7 @@ const MAX_FILTERS = 4
 export default function FilterStack({
   filters,
   expandedIndex,
+  causalMode,
   onToggleExpand,
   onRemove,
   onTypeChange,
@@ -21,6 +22,7 @@ export default function FilterStack({
           filter={filter}
           colorIndex={i}
           isExpanded={expandedIndex === i}
+          causalMode={causalMode}
           onToggle={() => onToggleExpand(i)}
           onRemove={() => onRemove(i)}
           onTypeChange={(type) => onTypeChange(i, type)}

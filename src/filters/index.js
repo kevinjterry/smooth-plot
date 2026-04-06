@@ -7,8 +7,8 @@ import * as kalman from './kalman'
 
 export const filterRegistry = [sma, ema, gaussian, savitzkyGolay, median, kalman]
 
-export function applyFilter(filterKey, data, params) {
+export function applyFilter(filterKey, data, params, { causalMode = false } = {}) {
   const filterModule = filterRegistry.find((f) => f.meta.key === filterKey)
   if (!filterModule) throw new Error(`Unknown filter: ${filterKey}`)
-  return filterModule.apply(data, params)
+  return filterModule.apply(data, params, { causalMode })
 }

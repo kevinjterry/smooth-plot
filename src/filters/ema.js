@@ -1,6 +1,7 @@
 export const meta = {
   name: 'Exponential Moving Average',
   key: 'ema',
+  causal: true,
   params: [
     { key: 'alpha', label: 'Alpha (smoothing)', min: 0.01, max: 1, step: 0.01, default: 0.1 },
   ],

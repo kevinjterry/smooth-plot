@@ -1,6 +1,7 @@
 export const meta = {
   name: '1-D Kalman',
   key: 'kalman',
+  causal: true,
   params: [
     { key: 'processNoise', label: 'Process Noise (Q)', min: 0.001, max: 10, step: 0.001, default: 0.1 },
     { key: 'measureNoise', label: 'Measurement Noise (R)', min: 0.001, max: 10, step: 0.001, default: 1 },

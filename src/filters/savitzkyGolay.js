@@ -1,6 +1,7 @@
 export const meta = {
-  name: 'Savitzky–Golay',
+  name: 'Savitzky\u2013Golay',
   key: 'savitzky-golay',
+  causal: false,
   params: [
     { key: 'windowSize', label: 'Window Size', min: 5, max: 51, step: 2, default: 11 },
     { key: 'polyOrder', label: 'Polynomial Order', min: 1, max: 5, step: 1, default: 3,
@@ -11,19 +12,19 @@ export const meta = {
 
 /**
  * Compute S-G convolution coefficients via least-squares polynomial fitting.
- * Solves (A^T A) c = A^T e_0 where A is the Vandermonde matrix for the window
- * and e_0 picks the smoothed value at the center point.
+ * When causal=true, the evaluation point is the last sample in the window (trailing).
+ * When causal=false, the evaluation point is the center of the window (centered).
  */
-function computeCoefficients(windowSize, polyOrder) {
-  const halfWindow = Math.floor(windowSize / 2)
+function computeCoefficients(windowSize, polyOrder, causal) {
   const order = Math.min(polyOrder, windowSize - 1)
+  // evalIndex: which position in the window we evaluate the polynomial at
+  const evalIndex = causal ? windowSize - 1 : Math.floor(windowSize / 2)
 
-  // Build Vandermonde matrix A (windowSize x (order+1))
   const rows = windowSize
   const cols = order + 1
   const A = []
   for (let i = 0; i < rows; i++) {
-    const x = i - halfWindow
+    const x = i - evalIndex
     const row = new Array(cols)
     row[0] = 1
     for (let j = 1; j < cols; j++) {
@@ -32,7 +33,7 @@ function computeCoefficients(windowSize, polyOrder) {
     A.push(row)
   }
 
-  // Compute A^T A
+  // A^T A
   const ATA = Array.from({ length: cols }, () => new Array(cols).fill(0))
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < cols; j++) {
@@ -43,11 +44,6 @@ function computeCoefficients(windowSize, polyOrder) {
       ATA[i][j] = sum
     }
   }
-
-  // Compute A^T e (where e is each row's identity — we want the 0th polynomial coeff)
-  // A^T's first column dotted with identity = A^T column for each data point
-  // Actually we need (A^T A)^-1 A^T, and we only need row 0 of that result.
-  // Solve (A^T A) x = A^T[:, k] for each k, take x[0] as the coefficient.
 
   // Gaussian elimination to invert ATA
   const augmented = ATA.map((row, i) => {
@@ -79,7 +75,6 @@ function computeCoefficients(windowSize, polyOrder) {
     }
   }
 
-  // Extract inverse
   const ATAinv = augmented.map((row) => row.slice(cols))
 
   // Coefficients = row 0 of (A^T A)^-1 A^T
@@ -95,17 +90,18 @@ function computeCoefficients(windowSize, polyOrder) {
   return coeffs
 }
 
-export function apply(data, { windowSize, polyOrder }) {
+export function apply(data, { windowSize, polyOrder }, { causalMode } = {}) {
   const clampedOrder = Math.min(polyOrder, windowSize - 1)
-  const coeffs = computeCoefficients(windowSize, clampedOrder)
-  const halfWindow = Math.floor(windowSize / 2)
+  const coeffs = computeCoefficients(windowSize, clampedOrder, causalMode)
+  // offset: how far back the window starts relative to the current point
+  const offset = causalMode ? windowSize - 1 : Math.floor(windowSize / 2)
   const result = new Array(data.length)
 
   for (let i = 0; i < data.length; i++) {
     let sum = 0
     let weightSum = 0
     for (let j = 0; j < windowSize; j++) {
-      const idx = i + j - halfWindow
+      const idx = i + j - offset
       if (idx >= 0 && idx < data.length) {
         sum += coeffs[j] * data[idx]
         weightSum += coeffs[j]

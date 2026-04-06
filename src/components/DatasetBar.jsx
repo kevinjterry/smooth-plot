@@ -29,7 +29,7 @@ export default function DatasetBar({
       <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">Noise</span>
         <Select value={noiseType} onValueChange={onNoiseTypeChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[170px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

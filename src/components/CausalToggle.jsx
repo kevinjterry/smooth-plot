@@ -14,7 +14,7 @@ export default function CausalToggle({ causalMode, onToggle }) {
         onCheckedChange={onToggle}
       />
       <span className="text-xs font-medium text-muted-foreground">
-        {causalMode ? 'Causal / real-time' : 'Full window'}
+        Causal only
       </span>
       <Popover>
         <PopoverTrigger asChild>

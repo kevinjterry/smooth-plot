@@ -10,13 +10,13 @@ export default function DatasetBar({
   noiseType, onNoiseTypeChange,
 }) {
   return (
-    <div className="space-y-2 px-4 py-3">
-      <div className="flex flex-wrap gap-1.5">
+    <div className="px-4 py-4">
+      <div className="flex flex-wrap gap-2">
         {signalRegistry.map((signal) => (
           <button
             key={signal.key}
             onClick={() => onSignalChange(signal.key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
               activeSignal === signal.key
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -26,32 +26,36 @@ export default function DatasetBar({
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-muted-foreground">Noise</span>
-        <Select value={noiseType} onValueChange={onNoiseTypeChange}>
-          <SelectTrigger className="w-[170px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {noiseTypes.map((nt) => (
-              <SelectItem key={nt.key} value={nt.key}>
-                {nt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="text-xs text-muted-foreground">Level</span>
-        <Slider
-          className="w-32"
-          min={0}
-          max={100}
-          step={1}
-          value={[noiseLevel * 100]}
-          onValueChange={([v]) => onNoiseChange(v / 100)}
-        />
-        <span className="w-8 text-right font-mono text-xs text-muted-foreground">
-          {noiseLevel.toFixed(2)}
-        </span>
+      <div className="mt-3 pt-3 border-t border-border flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Noise</span>
+          <Select value={noiseType} onValueChange={onNoiseTypeChange}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {noiseTypes.map((nt) => (
+                <SelectItem key={nt.key} value={nt.key}>
+                  {nt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-xs font-medium text-muted-foreground">Level</span>
+          <Slider
+            className="flex-1 max-w-[200px]"
+            min={0}
+            max={100}
+            step={1}
+            value={[noiseLevel * 100]}
+            onValueChange={([v]) => onNoiseChange(v / 100)}
+          />
+          <span className="w-10 text-right font-mono text-xs tabular-nums text-muted-foreground">
+            {noiseLevel.toFixed(2)}
+          </span>
+        </div>
       </div>
     </div>
   )

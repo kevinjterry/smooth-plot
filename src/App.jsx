@@ -90,29 +90,39 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <header className="shrink-0 border-b border-border px-4 py-2 flex items-center justify-between">
-        <h1 className="text-sm font-semibold tracking-tight">Signal Filter Visualizer</h1>
-        <CausalToggle causalMode={causalMode} onToggle={setCausalMode} />
-      </header>
-
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         <aside className="w-[280px] shrink-0 border-r border-border p-3 overflow-y-auto">
-          <FilterStack
-            filters={filters}
-            expandedIndex={expandedIndex}
-            causalMode={causalMode}
-            onToggleExpand={(i) => setExpandedIndex(i === expandedIndex ? -1 : i)}
-            onRemove={handleRemoveFilter}
-            onTypeChange={handleTypeChange}
-            onParamChange={handleParamChange}
-            onAdd={handleAddFilter}
-          />
+          <div className="mb-4">
+            <h1 className="text-sm font-semibold tracking-tight text-foreground">
+              Signal Filter Visualizer
+            </h1>
+            <div className="mt-2.5">
+              <CausalToggle causalMode={causalMode} onToggle={setCausalMode} />
+            </div>
+          </div>
+          <span className="text-[11px] uppercase tracking-widest text-muted-foreground/60 font-medium">
+            Filters
+          </span>
+          <div className="mt-2">
+            <FilterStack
+              filters={filters}
+              expandedIndex={expandedIndex}
+              causalMode={causalMode}
+              onToggleExpand={(i) => setExpandedIndex(i === expandedIndex ? -1 : i)}
+              onRemove={handleRemoveFilter}
+              onTypeChange={handleTypeChange}
+              onParamChange={handleParamChange}
+              onAdd={handleAddFilter}
+            />
+          </div>
         </aside>
 
         {/* Main area */}
-        <main className="flex flex-1 flex-col min-h-0 min-w-0">
-          <Chart rawData={rawData} filteredSeries={filteredSeries} />
+        <main className="flex flex-1 flex-col min-h-0 min-w-0 p-3">
+          <div className="flex-1 min-h-0 rounded-lg border border-border overflow-hidden">
+            <Chart rawData={rawData} filteredSeries={filteredSeries} />
+          </div>
           <DatasetBar
             activeSignal={activeSignal}
             onSignalChange={setActiveSignal}

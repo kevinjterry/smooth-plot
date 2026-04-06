@@ -50,9 +50,12 @@ export default function FilterCard({
       className="rounded-lg border border-border overflow-hidden"
       style={{ borderLeftWidth: 3, borderLeftColor: color }}
     >
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
-        className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
+        className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors cursor-pointer"
       >
         <span
           className="size-2.5 rounded-full shrink-0"
@@ -69,10 +72,10 @@ export default function FilterCard({
         <ChevronDownIcon
           className={`size-3.5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
         />
-      </button>
+      </div>
 
       {isExpanded && (
-        <div className="px-3 pb-3 space-y-3">
+        <div className="px-3 pb-4 space-y-4">
           <Select value={filter.type} onValueChange={onTypeChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Choose filter..." />
@@ -93,7 +96,7 @@ export default function FilterCard({
               <div key={param.key} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs text-muted-foreground">{param.label}</label>
-                  <span className="font-mono text-xs text-muted-foreground">{currentValue}</span>
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">{currentValue}</span>
                 </div>
                 <Slider
                   min={param.min}

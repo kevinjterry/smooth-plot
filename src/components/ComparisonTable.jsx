@@ -133,15 +133,15 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
     <div className="border-t border-border px-5 py-3 overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-muted-foreground">
-            <th className="text-left font-medium pr-4 pb-1.5">Filter</th>
+          <tr className="text-muted-foreground border-b border-border">
+            <th className="text-left font-medium pr-4 pb-2">Filter</th>
             {COLUMNS.map((col) => (
-              <th key={col.key} className="text-right font-medium px-3 pb-1.5 whitespace-nowrap">
+              <th key={col.key} className="text-right font-medium px-3 pb-2 whitespace-nowrap">
                 {col.label}
                 <InfoTooltip text={col.tooltip} />
               </th>
             ))}
-            <th className="text-right font-medium px-3 pb-1.5 whitespace-nowrap">
+            <th className="text-right font-medium px-3 pb-2 whitespace-nowrap">
               Cost
               <InfoTooltip text={COST_TOOLTIP} />
             </th>
@@ -149,8 +149,8 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
         </thead>
         <tbody>
           {rows.map((row, rowIdx) => (
-            <tr key={row.key}>
-              <td className="pr-4 py-1">
+            <tr key={row.key} className={rowIdx % 2 === 1 ? 'bg-muted/30' : ''}>
+              <td className="pr-4 py-1.5">
                 <div className="flex items-center gap-2">
                   <span
                     className="size-2.5 rounded-full shrink-0"
@@ -165,10 +165,11 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
                 return (
                   <td
                     key={col.key}
-                    className={`text-right font-mono px-3 py-1 whitespace-nowrap ${
-                      isBest ? 'text-foreground font-semibold' : isWorst ? 'text-muted-foreground/50' : 'text-muted-foreground'
+                    className={`text-right font-mono tabular-nums px-3 py-1.5 whitespace-nowrap ${
+                      isBest ? 'text-foreground font-semibold' : isWorst ? 'text-muted-foreground/40' : 'text-muted-foreground'
                     }`}
                   >
+                    {isBest && <span className="text-amber-400 mr-1">&#9733;</span>}
                     {col.format(row.stats[col.key])}
                   </td>
                 )

@@ -128,3 +128,14 @@
     @apply font-sans;
     }
 }
+
+aside::-webkit-scrollbar {
+  width: 4px;
+}
+aside::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 10%);
+  border-radius: 2px;
+}
+aside::-webkit-scrollbar-track {
+  background: transparent;
+}

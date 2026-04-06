@@ -51,6 +51,14 @@ const COLUMNS = [
   },
 ]
 
+const COST_TOOLTIP = 'At 500 points in a browser, all filters are instant. This rating reflects real-world cost on resource-constrained systems \u2014 e.g. a 32-bit MCU at 64MHz with no FPU, running a filter in a real-time sample loop.'
+
+function costDots(rating) {
+  const filled = Math.min(rating, 5)
+  const empty = 5 - filled
+  return '\u25CF'.repeat(filled) + '\u25CB'.repeat(empty)
+}
+
 function InfoTooltip({ text }) {
   return (
     <Popover>
@@ -63,6 +71,26 @@ function InfoTooltip({ text }) {
         <p>{text}</p>
       </PopoverContent>
     </Popover>
+  )
+}
+
+function CostCell({ complexity }) {
+  if (!complexity) return <td className="text-right px-3 py-1 text-muted-foreground/50">&mdash;</td>
+
+  return (
+    <td className="text-right px-3 py-1 whitespace-nowrap">
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="font-mono text-muted-foreground tracking-wider hover:text-foreground transition-colors cursor-help">
+            {costDots(complexity.rating)}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="top" className="w-72 text-xs space-y-1.5">
+          <p className="font-medium text-foreground">{complexity.bigO}</p>
+          <p className="text-muted-foreground">{complexity.tooltip}</p>
+        </PopoverContent>
+      </Popover>
+    </td>
   )
 }
 
@@ -113,6 +141,10 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
                 <InfoTooltip text={col.tooltip} />
               </th>
             ))}
+            <th className="text-right font-medium px-3 pb-1.5 whitespace-nowrap">
+              Cost
+              <InfoTooltip text={COST_TOOLTIP} />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -141,6 +173,7 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
                   </td>
                 )
               })}
+              <CostCell complexity={row.complexity} />
             </tr>
           ))}
         </tbody>

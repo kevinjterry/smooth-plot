@@ -2,6 +2,11 @@ export const meta = {
   name: 'Savitzky\u2013Golay',
   key: 'savitzky-golay',
   causal: false,
+  complexity: {
+    rating: 4,
+    bigO: 'O(n\u00b7w\u00b7p\u00b2)',
+    tooltip: 'Least-squares fit per window. Precompute coefficients \u2192 O(n\u00b7w) FIR, but coefficients change if window/order change at runtime. Heaviest of the group.',
+  },
   params: [
     { key: 'windowSize', label: 'Window Size', min: 5, max: 51, step: 2, default: 11 },
     { key: 'polyOrder', label: 'Polynomial Order', min: 1, max: 5, step: 1, default: 3,

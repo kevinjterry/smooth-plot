@@ -2,6 +2,11 @@ export const meta = {
   name: 'Gaussian Window',
   key: 'gaussian',
   causal: false,
+  complexity: {
+    rating: 3,
+    bigO: 'O(n\u00b7w)',
+    tooltip: 'Convolution with precomputed kernel. w multiplies + w adds per sample. Moderate \u2014 feasible at audio rates, tight at ultrasonic.',
+  },
   params: [
     { key: 'windowSize', label: 'Window Size', min: 3, max: 101, step: 2, default: 21 },
     { key: 'sigma', label: 'Sigma', min: 0.5, max: 20, step: 0.5, default: 5 },

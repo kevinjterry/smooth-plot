@@ -2,6 +2,11 @@ export const meta = {
   name: 'Median Filter',
   key: 'median',
   causal: false,
+  complexity: {
+    rating: 3,
+    bigO: 'O(n\u00b7w log w)',
+    tooltip: 'Sort per window, or O(n\u00b7log w) with running median heaps. Heap operations involve branching and pointer chasing \u2014 poor on simple pipelines. Impractical above ~1kHz with large windows on low-end MCUs.',
+  },
   params: [
     { key: 'windowSize', label: 'Window Size', min: 3, max: 51, step: 2, default: 11 },
   ],

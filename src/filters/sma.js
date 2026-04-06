@@ -2,6 +2,11 @@ export const meta = {
   name: 'Simple Moving Average',
   key: 'sma',
   causal: true,
+  complexity: {
+    rating: 2,
+    bigO: 'O(n)',
+    tooltip: 'Running-sum trick: 1 add + 1 subtract per sample. Requires a w-sample circular buffer in RAM (w=101 \u2192 400 bytes of float32).',
+  },
   params: [
     { key: 'windowSize', label: 'Window Size', min: 3, max: 101, step: 2, default: 21 },
   ],

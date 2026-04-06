@@ -40,6 +40,7 @@ export default function App() {
         return {
           key: `filter-${f.id}`,
           name: meta?.name ?? f.type,
+          complexity: meta?.complexity,
           data: applyFilter(f.type, rawData, f.params, { causalMode }),
         }
       }),

@@ -24,7 +24,7 @@ export function apply(data, { alpha, beta }) {
     const prevLevel = level
     level = alpha * data[i] + (1 - alpha) * (prevLevel + trend)
     trend = beta * (level - prevLevel) + (1 - beta) * trend
-    result[i] = level + trend
+    result[i] = level
   }
 
   return result

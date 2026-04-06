@@ -104,15 +104,11 @@ export function apply(data, { windowSize, polyOrder }, { causalMode } = {}) {
 
   for (let i = 0; i < data.length; i++) {
     let sum = 0
-    let weightSum = 0
     for (let j = 0; j < windowSize; j++) {
-      const idx = i + j - offset
-      if (idx >= 0 && idx < data.length) {
-        sum += coeffs[j] * data[idx]
-        weightSum += coeffs[j]
-      }
+      const idx = Math.max(0, Math.min(data.length - 1, i + j - offset))
+      sum += coeffs[j] * data[idx]
     }
-    result[i] = sum / weightSum
+    result[i] = sum
   }
 
   return result

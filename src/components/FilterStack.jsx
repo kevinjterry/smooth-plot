@@ -1,8 +1,7 @@
 import { PlusIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import FilterCard from './FilterCard'
-
-const MAX_FILTERS = 4
+import { MAX_FILTERS } from '../App'
 
 export default function FilterStack({
   filters,

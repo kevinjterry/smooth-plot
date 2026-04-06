@@ -14,14 +14,15 @@ export const meta = {
 
 export function apply(data, { windowSize }) {
   const result = new Array(data.length)
+  let sum = 0
 
   for (let i = 0; i < data.length; i++) {
-    let sum = 0
-    const start = Math.max(0, i - windowSize + 1)
-    for (let j = start; j <= i; j++) {
-      sum += data[j]
+    sum += data[i]
+    if (i >= windowSize) {
+      sum -= data[i - windowSize]
     }
-    result[i] = sum / (i - start + 1)
+    const count = Math.min(i + 1, windowSize)
+    result[i] = sum / count
   }
   return result
 }

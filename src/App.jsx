@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { generateSignal, getBaseSignal } from './signals'
 import { applyFilter, filterRegistry } from './filters'
 import Chart from './components/Chart'
@@ -7,18 +7,19 @@ import FilterStack from './components/FilterStack'
 import CausalToggle from './components/CausalToggle'
 import ComparisonTable from './components/ComparisonTable'
 
-let nextFilterId = 1
-
-function makeDefaultFilter() {
-  const defaultType = filterRegistry[0].meta.key
-  const defaultParams = {}
-  for (const p of filterRegistry[0].meta.params) {
-    defaultParams[p.key] = p.default
-  }
-  return { id: nextFilterId++, type: defaultType, params: defaultParams }
-}
+export const MAX_FILTERS = 4
 
 export default function App() {
+  const nextFilterId = useRef(1)
+
+  function makeDefaultFilter() {
+    const defaultType = filterRegistry[0].meta.key
+    const defaultParams = {}
+    for (const p of filterRegistry[0].meta.params) {
+      defaultParams[p.key] = p.default
+    }
+    return { id: nextFilterId.current++, type: defaultType, params: defaultParams }
+  }
   const [activeSignal, setActiveSignal] = useState('steady-climb')
   const [noiseLevel, setNoiseLevel] = useState(0.3)
   const [noiseType, setNoiseType] = useState('gaussian')
@@ -49,11 +50,12 @@ export default function App() {
 
   const handleAddFilter = useCallback(() => {
     setFilters((prev) => {
-      if (prev.length >= 4) return prev
-      return [...prev, makeDefaultFilter()]
+      if (prev.length >= MAX_FILTERS) return prev
+      const next = [...prev, makeDefaultFilter()]
+      setExpandedIndex(next.length - 1)
+      return next
     })
-    setExpandedIndex((prev) => filters.length)
-  }, [filters.length])
+  }, [])
 
   const handleRemoveFilter = useCallback((index) => {
     setFilters((prev) => prev.filter((_, i) => i !== index))

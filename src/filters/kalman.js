@@ -14,10 +14,11 @@ export const meta = {
 }
 
 export function apply(data, { processNoise, measureNoise }) {
+  const r = Math.max(measureNoise, 1e-10)
   const result = new Array(data.length)
 
   let estimatedValue = data[0]
-  let estimationErrorCovariance = measureNoise
+  let estimationErrorCovariance = r
   result[0] = estimatedValue
 
   for (let i = 1; i < data.length; i++) {
@@ -25,7 +26,7 @@ export function apply(data, { processNoise, measureNoise }) {
     estimationErrorCovariance += processNoise
 
     // Measurement update
-    const kalmanGain = estimationErrorCovariance / (estimationErrorCovariance + measureNoise)
+    const kalmanGain = estimationErrorCovariance / (estimationErrorCovariance + r)
     estimatedValue += kalmanGain * (data[i] - estimatedValue)
     estimationErrorCovariance = (1 - kalmanGain) * estimationErrorCovariance
 

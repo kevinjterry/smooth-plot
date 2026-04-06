@@ -31,6 +31,8 @@ export default function Chart({ rawData, filteredSeries }) {
   const [zoomArea, setZoomArea] = useState({ x1: null, x2: null })
   const [zoomDomain, setZoomDomain] = useState(null)
   const isDragging = useRef(false)
+  const zoomAreaRef = useRef(zoomArea)
+  zoomAreaRef.current = zoomArea
 
   const chartData = rawData.map((value, i) => {
     const point = { index: i, raw: value }
@@ -55,7 +57,7 @@ export default function Chart({ rawData, filteredSeries }) {
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false
-    const { x1, x2 } = zoomArea
+    const { x1, x2 } = zoomAreaRef.current
     if (x1 !== null && x2 !== null && x1 !== x2) {
       const left = Math.min(x1, x2)
       const right = Math.max(x1, x2)
@@ -64,7 +66,7 @@ export default function Chart({ rawData, filteredSeries }) {
       }
     }
     setZoomArea({ x1: null, x2: null })
-  }, [zoomArea])
+  }, [])
 
   const handleResetZoom = useCallback(() => {
     setZoomDomain(null)

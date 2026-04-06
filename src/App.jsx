@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
-import { generateSignal } from './signals'
+import { generateSignal, getBaseSignal } from './signals'
 import { applyFilter, filterRegistry } from './filters'
 import Chart from './components/Chart'
 import DatasetBar from './components/DatasetBar'
 import FilterStack from './components/FilterStack'
 import CausalToggle from './components/CausalToggle'
-import StatsBar from './components/StatsBar'
+import ComparisonTable from './components/ComparisonTable'
 
 let nextFilterId = 1
 
@@ -25,6 +25,8 @@ export default function App() {
   const [causalMode, setCausalMode] = useState(false)
   const [filters, setFilters] = useState(() => [makeDefaultFilter()])
   const [expandedIndex, setExpandedIndex] = useState(0)
+
+  const baseSignal = useMemo(() => getBaseSignal(activeSignal), [activeSignal])
 
   const rawData = useMemo(
     () => generateSignal(activeSignal, noiseLevel, noiseType),
@@ -85,8 +87,6 @@ export default function App() {
     )
   }, [])
 
-  const focusedSeries = filteredSeries[expandedIndex]
-
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="shrink-0 border-b border-border px-4 py-2 flex items-center justify-between">
@@ -123,10 +123,10 @@ export default function App() {
         </main>
       </div>
 
-      <StatsBar
+      <ComparisonTable
+        baseSignal={baseSignal}
         rawData={rawData}
-        filteredData={focusedSeries?.data}
-        filterName={focusedSeries?.name}
+        filteredSeries={filteredSeries}
       />
     </div>
   )

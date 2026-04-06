@@ -185,8 +185,8 @@ colored line on the chart alongside the raw signal.
    - Clicking a card header expands it and collapses the others.
 4. **All filters compute at all times** — curves never vanish/reappear.
    With ≤1000 points and ≤4 filters the computation is sub-millisecond.
-5. The **stats bar** shows metrics for whichever filter card is currently
-   expanded (the "focused" filter). A small label indicates which one.
+5. The **comparison table** below the chart shows metrics for all active
+   filters simultaneously (see Section 3a).
 6. Max 4 filters. The "+ Add Filter" button disables at the cap.
 
 ### Color palette
@@ -198,29 +198,107 @@ order of creation. The raw signal is always a translucent gray.
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Signal Filter Visualizer                            │
+│  Signal Filter Visualizer            [Causal ⓘ 🔘]  │
 ├────────────┬─────────────────────────────────────────┤
 │            │                                         │
 │ ┌────────┐ │         Recharts LineChart              │
-│ │ SMA  ✕ │ │                                         │
+│ │●SMA  ✕ │ │                                         │
 │ │ window │ │   — raw (translucent gray)             │
 │ │ [====] │ │   — filter 1 (blue, bold)              │
 │ └────────┘ │   — filter 2 (orange)                  │
 │ ┌────────┐ │   — filter 3 (green)                   │
-│ │ EMA  ✕ │ │                                         │
+│ │●EMA  ✕ │ │                                         │
 │ └────────┘ │                                         │
 │            │─────────────────────────────────────────│
 │ [+ Add   ] │ [Steady climb] [Sharp steps] [Spikes]  │
-│            │ [Noisy sine] [Random walk] [Chirp]      │
-│            │ [Decay+bump] [Plateau]    Noise [━━━━]  │
+│            │ [Noisy sine] [Random walk] [Chirp] ...  │
+│            │ Noise: [Gaussian ▾]    Level [━━━━━━]   │
 ├────────────┴─────────────────────────────────────────┤
-│  Stats (SMA): MSE 0.42 | MAE 0.31 | Max 1.8 | Lag 5│
+│  Filter Comparison                                          │
+│ ┌──────┬───────┬──────┬───────┬────────┬─────┬─────┬───────┐│
+│ │      │ RMSE  │ MAE  │ Lag   │ Smooth │ SNR │ Peak│ Cost  ││
+│ │● SMA │ 0.42  │ 0.31 │ ★ 0   │ 0.78   │★4.2 │ 72% │ ●●○○○││
+│ │● EMA │★0.38  │★0.27 │   2   │★0.91   │ 3.9 │★88% │★●○○○○││
+│ └──────┴───────┴──────┴───────┴────────┴─────┴─────┴───────┘│
+│  ★ = best in column                                          │
 └──────────────────────────────────────────────────────┘
 ```
 
 - Left panel: filter card stack only (~280 px)
-- Main area: chart (flex-grow) with dataset chips + noise slider below
-- Bottom bar: error metrics for the currently focused filter
+- Main area: chart (flex-grow) with dataset chips + noise controls below
+- Bottom panel: full-width comparison table spanning both columns
+
+---
+
+## 3a. Analytics — Comparison Table
+
+Replaces the single-line stats bar. A full-width table below the chart
+shows all active filters side by side with seven metrics (six computed,
+one static reference).
+
+### Metrics
+
+| Metric               | Column label | How it's computed                                                                 | What it reveals                                           |
+|----------------------|--------------|-----------------------------------------------------------------------------------|-----------------------------------------------------------|
+| **RMSE**             | RMSE         | Root mean squared error between filtered output and the clean base signal (no noise). | Overall accuracy. The universal "how close is the fit?"   |
+| **MAE**              | MAE          | Mean absolute error vs. clean base signal.                                        | Less sensitive to outliers than RMSE — useful contrast.   |
+| **Phase Lag**        | Lag          | Cross-correlation offset between clean base and filtered output that maximizes correlation. Measured in samples. | The core causal-mode metric. Shows the cost of real-time. |
+| **Smoothness**       | Smooth       | `1 / variance(diff(filtered))` — inverse variance of the first derivative, normalized 0–1. | How aggressively noise was removed. Pairs with lag for tradeoff analysis. |
+| **SNR Improvement**  | SNR (dB)     | `SNR_after - SNR_before` where `SNR = 10·log10(Var(signal) / Var(noise))`. Uses clean base as ground truth. | "Did the filter actually help?" — the single most intuitive metric. |
+| **Peak Preservation**| Peaks        | Percentage of local maxima/minima in the clean base signal that still appear (within tolerance) in the filtered output. | Shows S-G's advantage over SMA — preserving features vs. flattening them. |
+| **Complexity**       | Cost         | Static per-filter — not measured. See table below.                                | Real-world feasibility. Irrelevant at 500 pts, critical on embedded hardware. |
+
+### Computational complexity
+
+The "Cost" column is a **static reference value** pulled from the filter's
+`meta` descriptor — it's not benchmarked at runtime (these sizes are too
+small for meaningful measurement). It uses a simple rating system for quick
+scanning, with full details in a tooltip.
+
+| Filter   | Rating | Big-O           | Per-sample cost (32-bit MCU @ 64MHz, no FPU)                |
+|----------|--------|-----------------|-------------------------------------------------------------|
+| **EMA**  | ●○○○○  | O(n)            | 1 multiply + 1 add, 1 stored value. Runs in an ISR at any sample rate. The cheapest real filter. |
+| **SMA**  | ●●○○○  | O(n) amortized  | Running-sum trick: 1 add + 1 subtract per sample. But requires a w-sample circular buffer in RAM (w=101 → 400 bytes of float32). |
+| **Kalman** | ●●○○○ | O(n)           | ~5 multiplies + 1 divide per sample, 3 stored values. The divide hurts — 50–100 cycles on MCUs without hardware divider. Still very feasible at 64MHz. |
+| **Median** | ●●●○○ | O(n·w log w)   | Sort per window, or O(n·log w) with running median using two heaps. Heap operations involve branching and pointer chasing — poor on simple pipelines. Impractical above ~1kHz with large windows on low-end MCUs. |
+| **Gaussian** | ●●●○○ | O(n·w)       | Convolution with precomputed kernel. w multiplies + w adds per sample. Moderate — feasible at audio rates, tight at ultrasonic. |
+| **S-G**  | ●●●●○  | O(n·w·p²)      | Textbook: least-squares fit per window position. Practically, precompute convolution coefficients → becomes O(n·w) FIR, but the coefficients change if window/order change at runtime. Heaviest of the group. |
+
+The **filled-circle rating** (●○○○○ to ●●●●●) gives a quick visual scan
+in the table column. The ⓘ tooltip on "Cost" reveals the full context:
+
+> **Computational Cost**
+>
+> At 500 data points in a browser, all filters are effectively instant.
+> This rating reflects real-world cost on resource-constrained systems —
+> e.g. a 32-bit microcontroller at 64MHz with no floating-point unit,
+> running a filter in a real-time sample loop.
+>
+> ●○○○○ = trivial (ISR-safe at any rate)
+> ●●●●● = heavy (may need offline/batch processing)
+
+### Table behavior
+
+- **One row per active filter**, colored with the filter's swatch.
+- **Best value per column**: bold text + small ★ icon.
+- **Worst value per column**: muted/dimmed text (no icon — keep it positive).
+- All metrics recompute live as sliders move (same perf story — trivial cost).
+- When **causal mode** is toggled, the table updates instantly — the user
+  can watch lag values jump for non-causal filters while RMSE may worsen.
+  This is the "aha" moment.
+
+### Implementation note
+
+All metrics compare the filtered output against the **clean base signal**
+(noise-free), not against the raw noisy signal. This is possible because
+we generate the base deterministically and add noise separately. This gives
+us ground-truth accuracy that wouldn't be available with real data — one
+of the advantages of a synthetic visualization tool.
+
+### ⓘ Metric tooltips
+
+Each column header has a small info icon. Hovering shows a one-line
+explanation of what the metric measures and why it matters.
 
 ---
 
@@ -242,7 +320,7 @@ signalType + noiseLevel
         └──────────┬───────────────────────┘
                    ▼
         Recharts renders raw + all filtered series
-        Stats bar shows metrics for the focused filter
+        Comparison table recomputes all 6 metrics per filter
 ```
 
 All computation is synchronous and in the main thread — with ≤1000 points
@@ -261,7 +339,7 @@ src/
     FilterCard.jsx        # single collapsible filter: type picker + param sliders
     FilterStack.jsx       # manages list of FilterCards + "Add Filter" button
     CausalToggle.jsx      # causal mode switch + ⓘ info tooltip
-    StatsBar.jsx          # error metrics for the focused filter
+    ComparisonTable.jsx   # full-width metrics table (replaces stats bar)
   signals/
     index.js              # registry + generateSignal()
     curves.js             # individual base-curve functions
@@ -276,7 +354,7 @@ src/
     median.js
     # butterworth.js      # v2 — requires DSP lib
   utils/
-    stats.js              # MSE, MAE, max-dev, lag
+    stats.js              # RMSE, MAE, phase lag, smoothness, SNR, peak preservation
 ```
 
 ---
@@ -294,7 +372,12 @@ Each filter is a self-contained module exporting two things:
 export const meta = {
   name: "Simple Moving Average",
   key: "sma",
-  causal: true,   // naturally causal — unaffected by causal mode toggle
+  causal: true,       // naturally causal — unaffected by causal mode toggle
+  complexity: {
+    rating: 2,        // 1–5 filled circles (●●○○○)
+    bigO: "O(n)",
+    tooltip: "Running-sum trick: 1 add + 1 subtract per sample. Requires a w-sample circular buffer in RAM."
+  },
   params: [
     { key: "windowSize", label: "Window Size", min: 3, max: 101, step: 2, default: 21 }
   ]
@@ -308,6 +391,8 @@ export function apply(data, { windowSize }, { causalMode }) {
   slider for each entry. No filter-specific UI code anywhere.
 - `meta.causal` indicates native causality. Used for badge display and
   to determine whether causal mode changes the filter's behavior.
+- `meta.complexity` drives the "Cost" column in the comparison table.
+  `rating` renders as filled circles, `tooltip` provides embedded context.
 - `apply` signature is always
   `(number[], Record<string, number>, { causalMode: boolean }) → number[]`.
 - `filters/index.js` collects all modules into a `filterRegistry` array.

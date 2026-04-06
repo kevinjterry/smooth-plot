@@ -35,6 +35,10 @@ function getNoise(signalKey, noiseType) {
   return noiseCache.get(cacheKey)
 }
 
+export function getBaseSignal(signalKey) {
+  return baseCache.get(signalKey)
+}
+
 export function generateSignal(signalKey, noiseLevel, noiseType = 'gaussian') {
   const base = baseCache.get(signalKey)
   const noise = getNoise(signalKey, noiseType)

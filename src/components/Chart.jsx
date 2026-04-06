@@ -74,7 +74,7 @@ export default function Chart({ rawData, filteredSeries }) {
   const isZoomed = zoomDomain !== null
 
   return (
-    <div className="relative flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 8%)' }}>
+    <div className="relative flex-1 min-h-0" style={{ backgroundColor: 'var(--background)' }}>
       {isZoomed && (
         <button
           onClick={handleResetZoom}

@@ -1,6 +1,7 @@
+import { useState, useCallback, useRef } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer, ReferenceArea,
 } from 'recharts'
 
 const FILTER_COLORS = [
@@ -27,6 +28,10 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function Chart({ rawData, filteredSeries }) {
+  const [zoomArea, setZoomArea] = useState({ x1: null, x2: null })
+  const [zoomDomain, setZoomDomain] = useState(null)
+  const isDragging = useRef(false)
+
   const chartData = rawData.map((value, i) => {
     const point = { index: i, raw: value }
     filteredSeries.forEach((series) => {
@@ -35,19 +40,64 @@ export default function Chart({ rawData, filteredSeries }) {
     return point
   })
 
-  // Recharts doesn't reliably render dynamically added <Line> children.
-  // Keying the chart on the series keys forces a remount when lines are added/removed.
   const chartKey = filteredSeries.map((s) => s.key).join(',')
 
+  const handleMouseDown = useCallback((e) => {
+    if (!e?.activeLabel && e?.activeLabel !== 0) return
+    isDragging.current = true
+    setZoomArea({ x1: e.activeLabel, x2: null })
+  }, [])
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging.current || (!e?.activeLabel && e?.activeLabel !== 0)) return
+    setZoomArea((prev) => ({ ...prev, x2: e.activeLabel }))
+  }, [])
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false
+    const { x1, x2 } = zoomArea
+    if (x1 !== null && x2 !== null && x1 !== x2) {
+      const left = Math.min(x1, x2)
+      const right = Math.max(x1, x2)
+      if (right - left >= 5) {
+        setZoomDomain([left, right])
+      }
+    }
+    setZoomArea({ x1: null, x2: null })
+  }, [zoomArea])
+
+  const handleResetZoom = useCallback(() => {
+    setZoomDomain(null)
+  }, [])
+
+  const xDomain = zoomDomain || [0, rawData.length - 1]
+  const isZoomed = zoomDomain !== null
+
   return (
-    <div className="flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 8%)' }}>
+    <div className="relative flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 8%)' }}>
+      {isZoomed && (
+        <button
+          onClick={handleResetZoom}
+          className="absolute top-2 right-6 z-10 rounded px-2 py-0.5 text-[10px] font-medium bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          Reset zoom
+        </button>
+      )}
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart key={chartKey} data={chartData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
+        <LineChart
+          key={chartKey}
+          data={chartData}
+          margin={{ top: 16, right: 24, bottom: 8, left: 8 }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis
             dataKey="index"
             type="number"
-            domain={[0, 'dataMax']}
+            domain={xDomain}
+            allowDataOverflow
             tick={{ fontSize: 11, fill: 'hsl(0,0%,50%)' }}
             axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
             tickLine={false}
@@ -57,7 +107,11 @@ export default function Chart({ rawData, filteredSeries }) {
             axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
             tickLine={false}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={<CustomTooltip />}
+            position={{ x: 60, y: 8 }}
+            wrapperStyle={{ pointerEvents: 'none' }}
+          />
           <Line
             type="monotone"
             dataKey="raw"
@@ -79,6 +133,15 @@ export default function Chart({ rawData, filteredSeries }) {
               isAnimationActive={false}
             />
           ))}
+          {zoomArea.x1 !== null && zoomArea.x2 !== null && (
+            <ReferenceArea
+              x1={zoomArea.x1}
+              x2={zoomArea.x2}
+              strokeOpacity={0.3}
+              fill="hsl(210, 80%, 60%)"
+              fillOpacity={0.15}
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>

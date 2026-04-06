@@ -231,10 +231,10 @@ order of creation. The raw signal is always a translucent gray.
 │  Filter Comparison                                          │
 │ ┌──────┬───────┬──────┬───────┬────────┬─────┬─────┬───────┐│
 │ │      │ RMSE  │ MAE  │ Lag   │ Smooth │ SNR │ Peak│ Cost  ││
-│ │● SMA │ 0.42  │ 0.31 │ ★ 0   │ 0.78   │★4.2 │ 72% │ ●●○○○││
-│ │● EMA │★0.38  │★0.27 │   2   │★0.91   │ 3.9 │★88% │★●○○○○││
+│ │● SMA │ 0.42  │ 0.31 │   0   │ 0.78   │ 4.2 │ 72% │ ●●○○○││
+│ │● EMA │ 0.38  │ 0.27 │   2   │ 0.91   │ 3.9 │ 88% │ ●○○○○││
 │ └──────┴───────┴──────┴───────┴────────┴─────┴─────┴───────┘│
-│  ★ = best in column                                          │
+│  Bold = best in column                                       │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -295,7 +295,7 @@ in the table column. The ⓘ tooltip on "Cost" reveals the full context:
 ### Table behavior
 
 - **One row per active filter**, colored with the filter's swatch.
-- **Best value per column**: bold text + small ★ icon.
+- **Best value per column**: bold text.
 - **Worst value per column**: muted/dimmed text (no icon — keep it positive).
 - All metrics recompute live as sliders move (same perf story — trivial cost).
 - When **causal mode** is toggled, the table updates instantly — the user

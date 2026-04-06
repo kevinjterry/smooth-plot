@@ -169,7 +169,6 @@ export default function ComparisonTable({ baseSignal, rawData, filteredSeries })
                       isBest ? 'text-foreground font-semibold' : isWorst ? 'text-muted-foreground/40' : 'text-muted-foreground'
                     }`}
                   >
-                    {isBest && <span className="text-amber-400 mr-1">&#9733;</span>}
                     {col.format(row.stats[col.key])}
                   </td>
                 )

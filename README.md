@@ -4,6 +4,8 @@ An interactive single-page app for exploring how different smoothing and filteri
 
 Built as a teaching tool — every dataset is chosen to make at least one filter shine and at least one filter struggle.
 
+![Signal Filter Visualizer](public/screenshot.png)
+
 ## Features
 
 - **8 base signals** designed to expose filter tradeoffs (sharp steps, outlier spikes, chirp, random walk, etc.)

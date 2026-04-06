@@ -46,6 +46,8 @@ export default function Chart({ rawData, filteredSeries }) {
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis
             dataKey="index"
+            type="number"
+            domain={[0, 'dataMax']}
             tick={{ fontSize: 11, fill: 'hsl(0,0%,50%)' }}
             axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
             tickLine={false}

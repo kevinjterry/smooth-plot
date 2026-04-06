@@ -22,7 +22,7 @@ export default function App() {
   const [activeSignal, setActiveSignal] = useState('steady-climb')
   const [noiseLevel, setNoiseLevel] = useState(0.3)
   const [noiseType, setNoiseType] = useState('gaussian')
-  const [causalMode, setCausalMode] = useState(false)
+  const [causalMode, setCausalMode] = useState(true)
   const [filters, setFilters] = useState(() => [makeDefaultFilter()])
   const [expandedIndex, setExpandedIndex] = useState(0)
 

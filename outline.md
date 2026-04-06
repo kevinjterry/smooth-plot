@@ -100,11 +100,25 @@ sensible defaults and min/max bounds.
 |-------------------------------|---------|-----------------------------------------------------|
 | **Simple Moving Average**     | ✅ Yes  | `windowSize` (3 – 101, odd)                        |
 | **Exponential Moving Average**| ✅ Yes  | `alpha` (0.01 – 1.0)                               |
+| **Double Exp. (Holt)**        | ✅ Yes  | `alpha` (0.01 – 1.0), `beta` (0.01 – 1.0)        |
 | **Gaussian Window**           | ❌ No   | `windowSize` (3 – 101), `sigma` (0.5 – 20)        |
 | **Savitzky–Golay**            | ❌ No   | `windowSize` (5 – 51, odd), `polyOrder` (1 – 5)   |
 | **1-D Kalman**                | ✅ Yes  | `processNoise Q` (0.001 – 10), `measureNoise R` (0.001 – 10) |
 | **Median Filter**             | ❌ No   | `windowSize` (3 – 51, odd)                         |
 | ~~Butterworth (lowpass)~~     | —       | _Deferred to v2 — needs IIR coeff math or DSP lib_ |
+
+**Double Exponential (Holt)** is EMA's trend-aware sibling. EMA tracks
+the *level* of the signal; Holt adds a second smoothing pass that also
+tracks the *slope* (trend). Two parameters:
+
+- `alpha` — level smoothing (same role as in EMA)
+- `beta` — trend smoothing (0 = ignore trend, 1 = track instantly)
+
+This makes it dramatically better than EMA on trending data (steady climb,
+plateau & drop) because it anticipates where the signal is *going*, not
+just where it's been. On flat/oscillating data it behaves like EMA.
+The direct A/B comparison between EMA and Holt on the same dataset is
+one of the clearest "why this filter exists" moments in the app.
 
 ### Causal mode toggle
 
@@ -258,6 +272,7 @@ scanning, with full details in a tooltip.
 | Filter   | Rating | Big-O           | Per-sample cost (32-bit MCU @ 64MHz, no FPU)                |
 |----------|--------|-----------------|-------------------------------------------------------------|
 | **EMA**  | ●○○○○  | O(n)            | 1 multiply + 1 add, 1 stored value. Runs in an ISR at any sample rate. The cheapest real filter. |
+| **Holt** | ●○○○○  | O(n)            | 2 multiplies + 2 adds per sample, 2 stored values (level + trend). Barely more than EMA — same ISR-safe profile. |
 | **SMA**  | ●●○○○  | O(n) amortized  | Running-sum trick: 1 add + 1 subtract per sample. But requires a w-sample circular buffer in RAM (w=101 → 400 bytes of float32). |
 | **Kalman** | ●●○○○ | O(n)           | ~5 multiplies + 1 divide per sample, 3 stored values. The divide hurts — 50–100 cycles on MCUs without hardware divider. Still very feasible at 64MHz. |
 | **Median** | ●●●○○ | O(n·w log w)   | Sort per window, or O(n·log w) with running median using two heaps. Heap operations involve branching and pointer chasing — poor on simple pipelines. Impractical above ~1kHz with large windows on low-end MCUs. |
@@ -348,6 +363,7 @@ src/
     index.js              # registry + applyFilter()
     sma.js
     ema.js
+    holt.js               # Double Exponential (Holt) — trend-aware EMA
     gaussian.js
     savitzkyGolay.js
     kalman.js

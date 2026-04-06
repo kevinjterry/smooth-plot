@@ -1,9 +1,16 @@
-import { signalRegistry } from '../signals'
+import { signalRegistry, noiseTypes } from '../signals'
 import { Slider } from './ui/slider'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from './ui/select'
 
-export default function DatasetBar({ activeSignal, onSignalChange, noiseLevel, onNoiseChange }) {
+export default function DatasetBar({
+  activeSignal, onSignalChange,
+  noiseLevel, onNoiseChange,
+  noiseType, onNoiseTypeChange,
+}) {
   return (
-    <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+    <div className="space-y-2 px-4 py-3">
       <div className="flex flex-wrap gap-1.5">
         {signalRegistry.map((signal) => (
           <button
@@ -19,8 +26,21 @@ export default function DatasetBar({ activeSignal, onSignalChange, noiseLevel, o
           </button>
         ))}
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <span className="text-xs text-muted-foreground">Noise</span>
+        <Select value={noiseType} onValueChange={onNoiseTypeChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {noiseTypes.map((nt) => (
+              <SelectItem key={nt.key} value={nt.key}>
+                {nt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground">Level</span>
         <Slider
           className="w-32"
           min={0}

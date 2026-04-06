@@ -40,7 +40,7 @@ export default function Chart({ rawData, filteredSeries }) {
   const chartKey = filteredSeries.map((s) => s.key).join(',')
 
   return (
-    <div className="flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 12%)' }}>
+    <div className="flex-1 min-h-0" style={{ backgroundColor: 'hsl(220, 15%, 8%)' }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart key={chartKey} data={chartData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />

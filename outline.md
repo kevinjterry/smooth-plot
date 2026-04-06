@@ -52,6 +52,23 @@ and at least one filter struggle. This is the pedagogical core of the app.
   scales the amplitude, so dragging it smoothly grows/shrinks the same bumps
   rather than jumping to a new random realization.
 
+### Noise type selector
+
+A dropdown (or small chip group) next to the noise slider selects the noise
+distribution. This is critical for exposing filter differences — fixed
+Gaussian noise is SMA's best case and makes every filter look roughly equal.
+
+| Noise type          | Description                                        | What it exposes                                      |
+|---------------------|----------------------------------------------------|------------------------------------------------------|
+| **Gaussian**        | Standard normal, fixed amplitude. The default.     | Baseline. SMA does well here — fair comparison.      |
+| **Heavy-tailed**    | Cauchy or Laplace distribution. Frequent outliers.  | SMA averages outliers in; median rejects them cleanly. Kalman depends on R. Dramatic difference. |
+| **Bursty**          | Intermittent — quiet periods with sudden noisy bursts. | Fixed-window filters over-smooth quiet sections OR under-smooth bursts. Kalman adapts. |
+| **Heteroscedastic** | Amplitude ramps up over time (or oscillates).      | Any fixed-parameter filter is tuned wrong for half the signal. Motivates adaptive/Kalman approaches. |
+
+The noise type affects how `noise[i]` is generated but the amplitude slider
+still scales it uniformly. Seeding behavior stays the same — each
+(dataset, noiseType) pair has a deterministic realization.
+
 ### Dataset selector UX
 
 Datasets are selected via a **horizontal tab/chip bar below the chart**, not
@@ -63,14 +80,14 @@ switching datasets feel lightweight — like flipping channels.
 │                   Chart                         │
 ├─────────────────────────────────────────────────┤
 │ [Steady climb] [Sharp steps] [Outlier spikes]  │
-│ [Noisy sine] [Random walk] [Chirp]             │
-│ [Decay+bump] [Plateau & drop]                  │
-│                                        Noise ━━│
+│ [Noisy sine] [Random walk] [Chirp] ...         │
+│                                                 │
+│ Noise: [Gaussian ▾]            Level [━━━━━━]  │
 └─────────────────────────────────────────────────┘
 ```
 
-The noise slider also moves below the chart, next to the dataset chips,
-since it's a property of the data — not the filters.
+The noise type dropdown and amplitude slider sit below the dataset chips,
+since they're properties of the data — not the filters.
 
 ---
 
@@ -186,7 +203,7 @@ src/
   signals/
     index.js              # registry + generateSignal()
     curves.js             # individual base-curve functions
-    noise.js              # seeded Gaussian noise util
+    noise.js              # seeded noise generator (Gaussian, Cauchy, bursty, heteroscedastic)
   filters/
     index.js              # registry + applyFilter()
     sma.js
@@ -234,11 +251,14 @@ The UI dynamically clamps — no error states, just smooth guardrails.
 
 ### Noise & seeding
 
-- Each dataset has a **fixed, hardcoded seed**. It never changes.
-- The noise array is generated once per dataset on load.
+- Each **(dataset, noiseType)** pair has a **fixed, hardcoded seed**. It never changes.
+- The noise array is generated once per combination on load.
 - The noise slider **scales amplitude only** (`base[i] + level * noise[i]`).
 - This means dragging the slider smoothly grows/shrinks the same bumps.
-- Switching datasets produces a different noise pattern (different seed).
+- Switching datasets or noise types produces a different noise pattern (different seed).
+- **Four noise distributions**: Gaussian, heavy-tailed (Cauchy/Laplace),
+  bursty (intermittent), and heteroscedastic (time-varying amplitude).
+  Selected via a dropdown in the dataset bar below the chart.
 
 ### Chart behavior
 

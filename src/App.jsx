@@ -20,12 +20,13 @@ function makeDefaultFilter() {
 export default function App() {
   const [activeSignal, setActiveSignal] = useState('steady-climb')
   const [noiseLevel, setNoiseLevel] = useState(0.3)
+  const [noiseType, setNoiseType] = useState('gaussian')
   const [filters, setFilters] = useState(() => [makeDefaultFilter()])
   const [expandedIndex, setExpandedIndex] = useState(0)
 
   const rawData = useMemo(
-    () => generateSignal(activeSignal, noiseLevel),
-    [activeSignal, noiseLevel],
+    () => generateSignal(activeSignal, noiseLevel, noiseType),
+    [activeSignal, noiseLevel, noiseType],
   )
 
   const filteredSeries = useMemo(
@@ -113,6 +114,8 @@ export default function App() {
             onSignalChange={setActiveSignal}
             noiseLevel={noiseLevel}
             onNoiseChange={setNoiseLevel}
+            noiseType={noiseType}
+            onNoiseTypeChange={setNoiseType}
           />
         </main>
       </div>

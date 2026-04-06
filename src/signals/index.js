@@ -2,7 +2,9 @@ import {
   steadyClimb, sharpSteps, outlierSpikes, noisySine,
   randomWalk, chirp, decayBump, plateauDrop,
 } from './curves'
-import { generateGaussianNoise } from './noise'
+import { generateNoise, noiseTypes } from './noise'
+
+export { noiseTypes }
 
 export const signalRegistry = [
   { key: 'steady-climb',    label: 'Steady climb',    points: 500, seed: 42,   curve: steadyClimb },
@@ -15,16 +17,26 @@ export const signalRegistry = [
   { key: 'plateau-drop',    label: 'Plateau & drop',  points: 400, seed: 901,  curve: plateauDrop },
 ]
 
-// Pre-generate base curves and noise arrays (once, on load)
-const signalCache = new Map()
-
+// Pre-generate base curves (once, on load)
+const baseCache = new Map()
 for (const entry of signalRegistry) {
-  const base = entry.curve(entry.points)
-  const noise = generateGaussianNoise(entry.points, entry.seed)
-  signalCache.set(entry.key, { base, noise })
+  baseCache.set(entry.key, entry.curve(entry.points))
 }
 
-export function generateSignal(signalKey, noiseLevel) {
-  const { base, noise } = signalCache.get(signalKey)
+// Lazily cache noise arrays per (dataset, noiseType) pair
+const noiseCache = new Map()
+
+function getNoise(signalKey, noiseType) {
+  const cacheKey = `${signalKey}:${noiseType}`
+  if (!noiseCache.has(cacheKey)) {
+    const entry = signalRegistry.find((s) => s.key === signalKey)
+    noiseCache.set(cacheKey, generateNoise(entry.points, entry.seed, noiseType))
+  }
+  return noiseCache.get(cacheKey)
+}
+
+export function generateSignal(signalKey, noiseLevel, noiseType = 'gaussian') {
+  const base = baseCache.get(signalKey)
+  const noise = getNoise(signalKey, noiseType)
   return base.map((value, i) => value + noiseLevel * noise[i])
 }

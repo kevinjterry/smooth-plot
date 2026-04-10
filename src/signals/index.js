@@ -2,7 +2,7 @@ import {
   steadyClimb, sharpSteps, outlierSpikes, noisySine,
   randomWalk, chirp, decayBump, plateauDrop,
 } from './curves'
-import { generateNoise, noiseTypes } from './noise'
+import { generateNoise, smoothNoise, noiseTypes } from './noise'
 
 export { noiseTypes }
 
@@ -39,8 +39,10 @@ export function getBaseSignal(signalKey) {
   return baseCache.get(signalKey)
 }
 
-export function generateSignal(signalKey, noiseLevel, noiseType = 'gaussian') {
+export function generateSignal(signalKey, noiseLevel, noiseType = 'gaussian', noiseSpeed = 1.0) {
   const base = baseCache.get(signalKey)
-  const noise = getNoise(signalKey, noiseType)
+  const rawNoise = getNoise(signalKey, noiseType)
+  const sigma = (1 - noiseSpeed) * 15
+  const noise = smoothNoise(rawNoise, sigma)
   return base.map((value, i) => value + noiseLevel * noise[i])
 }

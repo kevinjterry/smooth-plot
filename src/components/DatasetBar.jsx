@@ -8,6 +8,7 @@ export default function DatasetBar({
   activeSignal, onSignalChange,
   noiseLevel, onNoiseChange,
   noiseType, onNoiseTypeChange,
+  noiseSpeed, onNoiseSpeedChange,
 }) {
   return (
     <div className="px-4 py-4">
@@ -54,6 +55,20 @@ export default function DatasetBar({
           />
           <span className="w-10 text-right font-mono text-xs tabular-nums text-muted-foreground">
             {noiseLevel.toFixed(2)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-xs font-medium text-muted-foreground">Speed</span>
+          <Slider
+            className="flex-1 max-w-[200px]"
+            min={0}
+            max={100}
+            step={1}
+            value={[noiseSpeed * 100]}
+            onValueChange={([v]) => onNoiseSpeedChange(v / 100)}
+          />
+          <span className="w-10 text-right font-mono text-xs tabular-nums text-muted-foreground">
+            {noiseSpeed.toFixed(2)}
           </span>
         </div>
       </div>

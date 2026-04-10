@@ -109,3 +109,36 @@ export function generateNoise(length, seed, noiseType = 'gaussian') {
   const rng = mulberry32(seed + (typeOffset[noiseType] ?? 0))
   return generators[noiseType](length, rng)
 }
+
+/**
+ * Smooth a noise array with a 1D Gaussian kernel to control bandwidth.
+ * sigma controls smoothing strength: 0 = no change, 15 = heavy smoothing.
+ * Returns a new array — never mutates the input.
+ */
+export function smoothNoise(noise, sigma) {
+  if (sigma < 0.5) return noise
+
+  const radius = Math.ceil(3 * sigma)
+  const kernelSize = 2 * radius + 1
+  const kernel = new Array(kernelSize)
+  let kernelSum = 0
+  for (let j = 0; j < kernelSize; j++) {
+    const x = j - radius
+    kernel[j] = Math.exp(-(x * x) / (2 * sigma * sigma))
+    kernelSum += kernel[j]
+  }
+  for (let j = 0; j < kernelSize; j++) {
+    kernel[j] /= kernelSum
+  }
+
+  const result = new Array(noise.length)
+  for (let i = 0; i < noise.length; i++) {
+    let sum = 0
+    for (let j = 0; j < kernelSize; j++) {
+      const idx = Math.max(0, Math.min(noise.length - 1, i + j - radius))
+      sum += noise[idx] * kernel[j]
+    }
+    result[i] = sum
+  }
+  return result
+}

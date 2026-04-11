@@ -1,16 +1,17 @@
-# Signal Filter Visualizer
+# Filter Bench
 
 An interactive single-page app for exploring how different smoothing and filtering algorithms transform noisy data. Pick a signal, dial up noise, compare up to 4 filters side by side, and watch the results update live.
 
 Built as a teaching tool — every dataset is chosen to make at least one filter shine and at least one filter struggle.
 
-![Signal Filter Visualizer](public/screenshot.png)
+![Filter Bench](public/screenshot.png)
 
 ## Features
 
 - **8 base signals** designed to expose filter tradeoffs (sharp steps, outlier spikes, chirp, random walk, etc.)
 - **7 filters**: SMA, EMA, Double Exponential (Holt), Gaussian Window, Savitzky-Golay, Median, 1-D Kalman
 - **4 noise types**: Gaussian, heavy-tailed (Cauchy), bursty, heteroscedastic
+- **Noise speed slider** — control noise bandwidth from slow rolling disturbances to sharp sample-to-sample jitter
 - **Causal mode toggle** — force all filters into real-time (trailing-only) behavior and watch lag appear
 - **Comparison table** with 7 metrics (RMSE, MAE, phase lag, smoothness, SNR improvement, peak preservation, computational cost) — all computed against the clean ground-truth signal
 - **Click-drag zoom** on the chart
@@ -35,9 +36,9 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ```
 src/
-  App.jsx                   # Layout shell, state management
+  App.jsx                    # Layout shell, state management
   components/
-    Chart.jsx               # Recharts wrapper with zoom
+    Chart.jsx                # Recharts wrapper with zoom
     DatasetBar.jsx           # Signal selector chips + noise controls
     FilterCard.jsx           # Collapsible filter with type picker + param sliders
     FilterStack.jsx          # Manages list of FilterCards + "Add Filter" button
@@ -46,7 +47,7 @@ src/
   signals/
     index.js                 # Signal registry + generateSignal()
     curves.js                # Base curve functions
-    noise.js                 # Seeded noise generators (4 types)
+    noise.js                 # Seeded noise generators (4 types) + smoothing
   filters/
     index.js                 # Filter registry + applyFilter()
     sma.js                   # Simple Moving Average
@@ -121,4 +122,4 @@ Add a generator function in `src/signals/noise.js`, register it in the `noiseTyp
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

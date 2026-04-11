@@ -39,3 +39,6 @@ coverage
 
 # Claude Code
 .claude/
+
+# Design docs (local only)
+/docs/

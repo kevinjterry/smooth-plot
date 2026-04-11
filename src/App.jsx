@@ -98,7 +98,7 @@ export default function App() {
         <aside className="w-[280px] shrink-0 border-r border-border p-3 overflow-y-auto">
           <div className="mb-4">
             <h1 className="text-sm font-semibold tracking-tight text-foreground">
-              Signal Filter Visualizer
+              Filter Bench
             </h1>
             <div className="mt-2.5">
               <CausalToggle causalMode={causalMode} onToggle={setCausalMode} />
